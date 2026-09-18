@@ -1,0 +1,28 @@
+<?php
+// Script temporal: aplica la ampliación de sql/ruta360.sql del Manual 4
+// (tablas rutas y puntos_interes + datos de ejemplo).
+declare(strict_types=1);
+header('Content-Type: text/plain; charset=utf-8');
+
+try {
+    $pdo = new PDO('mysql:host=127.0.0.1;port=3306;dbname=ruta360vs1;charset=utf8mb4', 'root', '', [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    ]);
+
+    $contenido = file_get_contents(__DIR__ . '/sql/manual4.sql');
+    $sentencias = array_filter(array_map('trim', explode(';', $contenido)));
+    foreach ($sentencias as $sentencia) {
+        if ($sentencia === '') {
+            continue;
+        }
+        $pdo->exec($sentencia);
+    }
+
+    echo "Ampliación aplicada sin errores.\n";
+    $rutas = $pdo->query('SELECT COUNT(*) AS total FROM rutas')->fetch();
+    $puntos = $pdo->query('SELECT COUNT(*) AS total FROM puntos_interes')->fetch();
+    echo 'Filas en rutas: ' . $rutas['total'] . "\n";
+    echo 'Filas en puntos_interes: ' . $puntos['total'] . "\n";
+} catch (Throwable $e) {
+    echo 'ERROR: ' . $e->getMessage() . "\n";
+}

@@ -1,0 +1,19 @@
+<?php
+// Script temporal: crea la base de datos ruta360vs1 (separada de ruta360)
+// usando las mismas credenciales que config/config.php del proyecto original.
+declare(strict_types=1);
+header('Content-Type: text/plain; charset=utf-8');
+
+try {
+    $pdo = new PDO('mysql:host=127.0.0.1;port=3306;charset=utf8mb4', 'root', '', [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    ]);
+    $pdo->exec("CREATE DATABASE IF NOT EXISTS ruta360vs1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    echo "Base de datos 'ruta360vs1' creada (o ya existia).\n";
+
+    $stmt = $pdo->query("SHOW DATABASES LIKE 'ruta360vs1'");
+    $existe = $stmt->fetch();
+    echo 'Verificacion SHOW DATABASES: ' . ($existe ? 'OK, existe' : 'NO aparece') . "\n";
+} catch (Throwable $e) {
+    echo 'ERROR: ' . $e->getMessage() . "\n";
+}

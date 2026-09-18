@@ -1,0 +1,12 @@
+# Configuración local con credenciales
+config/config.local.php
+sql/04_usuario_aplicacion.sql
+
+# Datos generados durante la ejecución
+storage/cache/*.json
+
+# Editor y sistema operativo
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

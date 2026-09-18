@@ -1,0 +1,47 @@
+<?php
+declare(strict_types=1);
+ini_set('display_errors', '1');
+error_reporting(E_ALL);
+
+require_once __DIR__ . '/servicios/meteo_resiliente.php';
+require_once __DIR__ . '/servicios/cache_meteo.php';
+
+$lat = 41.3874;
+$lon = 2.1686;
+
+echo "1) Probando escritura directa en storage/cache...\n";
+try {
+    $archivoPrueba = __DIR__ . '/storage/cache/_prueba_escritura.json';
+    file_put_contents($archivoPrueba, '{"ok":true}');
+    echo "   Escritura OK: " . (is_file($archivoPrueba) ? 'archivo existe' : 'NO existe') . "\n";
+} catch (\Throwable $e) {
+    echo "   ERROR escritura: " . $e->getMessage() . "\n";
+}
+
+echo "\n2) Probando solicitarConReintento directamente...\n";
+try {
+    $url = construirUrlMeteo($lat, $lon);
+    echo "   URL: $url\n";
+    $datos = solicitarConReintento($url);
+    echo "   OK: " . json_encode($datos) . "\n";
+} catch (\Throwable $e) {
+    echo "   EXCEPCION: " . get_class($e) . " - " . $e->getMessage() . "\n";
+    if ($e instanceof ServicioExternoException) {
+        echo "   categoria=" . $e->categoria . " http=" . $e->codigoHttp . " curl=" . $e->codigoCurl . "\n";
+    }
+}
+
+echo "\n3) Probando guardarCache...\n";
+try {
+    $archivo = rutaCache($lat, $lon);
+    echo "   Archivo cache: $archivo\n";
+    guardarCache($archivo, ['temperatura' => 20.0, 'codigo_tiempo' => 1, 'obtenido_en' => date(DATE_ATOM), 'tiempo_conexion' => 0.1, 'tiempo_total' => 0.2]);
+    echo "   Guardado OK, existe=" . (is_file($archivo) ? 'si' : 'no') . "\n";
+} catch (\Throwable $e) {
+    echo "   ERROR guardarCache: " . get_class($e) . " - " . $e->getMessage() . "\n";
+}
+
+echo "\n4) obtenerTiempoResiliente completo...\n";
+require_once __DIR__ . '/servicios/tiempo_resiliente.php';
+$resultado = obtenerTiempoResiliente($lat, $lon);
+echo json_encode($resultado, JSON_PRETTY_PRINT) . "\n";

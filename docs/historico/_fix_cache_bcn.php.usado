@@ -1,0 +1,11 @@
+<?php
+declare(strict_types=1);
+require_once __DIR__ . '/servicios/meteo_resiliente.php';
+require_once __DIR__ . '/servicios/cache_meteo.php';
+
+$lat = 41.3874;
+$lon = 2.1686;
+$url = construirUrlMeteo($lat, $lon);
+$datos = solicitarConReintento($url);
+guardarCache(rutaCache($lat, $lon), $datos);
+echo "Cache Barcelona actualizada con datos reales: " . json_encode($datos);

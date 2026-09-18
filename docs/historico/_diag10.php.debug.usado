@@ -1,0 +1,18 @@
+<?php
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+echo "start<br>";
+try {
+    require_once __DIR__ . '/seguridad_web.php';
+    echo "seguridad_web ok<br>";
+    require_once __DIR__ . '/servicios/cliente_rutas.php';
+    echo "cliente_rutas ok<br>";
+    echo "csrf token: " . htmlspecialchars(tokenCsrf()) . "<br>";
+    $u = $_SESSION['usuario'] ?? null;
+    echo "usuario sesion: " . var_export($u, true) . "<br>";
+} catch (\Throwable $e) {
+    echo "EXCEPTION: " . get_class($e) . " - " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine() . "<br>";
+    echo "<pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>";
+}
+echo "end";

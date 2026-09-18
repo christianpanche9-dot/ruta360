@@ -1,0 +1,5 @@
+<?php
+declare(strict_types=1);
+
+const API_BASE_URL = 'http://localhost/curso_php/ruta360vs1/api';
+const API_TOKEN = 'PENDIENTE_DE_GENERAR';

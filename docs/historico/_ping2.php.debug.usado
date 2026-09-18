@@ -1,0 +1,4 @@
+<?php
+echo "before\n";
+require_once __DIR__ . '/config_api.php';
+echo "after: " . API_BASE_URL;

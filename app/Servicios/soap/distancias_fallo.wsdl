@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions name="DistanciasService"
+    targetNamespace="urn:ruta360:distancias"
+    xmlns:tns="urn:ruta360:distancias"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns="http://schemas.xmlsoap.org/wsdl/">
+
+    <types>
+        <xsd:schema targetNamespace="urn:ruta360:distancias">
+            <xsd:element name="CalcularDistancia">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="Origen" type="xsd:string"/>
+                        <xsd:element name="Destino" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="CalcularDistanciaResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="CalcularDistanciaResult">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="DistanceKm" type="xsd:double" minOccurs="0"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:schema>
+    </types>
+
+    <message name="CalcularDistanciaRequest">
+        <part name="parameters" element="tns:CalcularDistancia"/>
+    </message>
+    <message name="CalcularDistanciaSoapOut">
+        <part name="parameters" element="tns:CalcularDistanciaResponse"/>
+    </message>
+
+    <portType name="DistanciasServicePortType">
+        <operation name="CalcularDistancia">
+            <input message="tns:CalcularDistanciaRequest"/>
+            <output message="tns:CalcularDistanciaSoapOut"/>
+        </operation>
+    </portType>
+
+    <binding name="DistanciasServiceBinding" type="tns:DistanciasServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <operation name="CalcularDistancia">
+            <soap:operation soapAction="urn:ruta360:distancias#CalcularDistancia"/>
+            <input><soap:body use="literal"/></input>
+            <output><soap:body use="literal"/></output>
+        </operation>
+    </binding>
+
+    <service name="DistanciasService">
+        <port name="DistanciasServicePort" binding="tns:DistanciasServiceBinding">
+            <soap:address location="http://localhost/curso_php/ruta360vs1/soap/distancias_server.php?fallo=1"/>
+        </port>
+    </service>
+</definitions>

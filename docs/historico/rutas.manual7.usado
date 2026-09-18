@@ -1,0 +1,125 @@
+<?php
+require_once __DIR__ . '/servicios/cliente_rutas.php';
+
+// --- Filtro ciudad ---
+$textoCiudad = filter_input(INPUT_GET, 'id_ciudad');
+$idCiudad = null;
+$errorFiltro = null;
+
+if ($textoCiudad !== null && $textoCiudad !== '') {
+    $idCiudad = filter_var($textoCiudad, FILTER_VALIDATE_INT,
+        ['options' => ['min_range' => 1]]);
+    if ($idCiudad === false) {
+        $errorFiltro = 'Selecciona una ciudad válida.';
+        $idCiudad = null;
+    }
+}
+
+// --- Filtro duración máxima (actividad guiada 7.32) ---
+$textoDuracion = filter_input(INPUT_GET, 'duracion_maxima');
+$duracionMaxima = null;
+if ($errorFiltro === null && $textoDuracion !== null && $textoDuracion !== '') {
+    $duracionMaxima = filter_var($textoDuracion, FILTER_VALIDATE_INT,
+        ['options' => ['min_range' => 1]]);
+    if ($duracionMaxima === false) {
+        $errorFiltro = 'La duración máxima debe ser un número entero positivo.';
+        $duracionMaxima = null;
+    }
+}
+
+// --- Filtro dificultad (actividad de modificación 7.34) ---
+$dificultad = filter_input(INPUT_GET, 'dificultad');
+if ($dificultad === '') {
+    $dificultad = null;
+}
+if ($errorFiltro === null && $dificultad !== null
+    && !in_array($dificultad, ['facil', 'media', 'alta'], true)) {
+    $errorFiltro = 'Selecciona un nivel de dificultad válido.';
+    $dificultad = null;
+}
+
+$resultado = null;
+$rutas = [];
+$total = 0;
+
+if ($errorFiltro === null) {
+    $resultado = obtenerRutas($idCiudad, $duracionMaxima, $dificultad);
+    if ($resultado['ok']) {
+        $contrato = $resultado['datos'];
+        $rutas = $contrato['datos'];
+        $total = (int) $contrato['total'];
+    }
+}
+?>
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Rutas | Ruta360</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+<main>
+    <h1>Rutas disponibles</h1>
+
+    <form method="get" action="rutas.php" class="filtros">
+        <div>
+            <label for="id_ciudad">Ciudad</label>
+            <select name="id_ciudad" id="id_ciudad">
+                <option value="">Todas las ciudades</option>
+                <option value="1" <?= $idCiudad === 1 ? 'selected' : '' ?>>Barcelona</option>
+                <option value="2" <?= $idCiudad === 2 ? 'selected' : '' ?>>Madrid</option>
+                <option value="4" <?= $idCiudad === 4 ? 'selected' : '' ?>>París</option>
+            </select>
+        </div>
+        <div>
+            <label for="duracion_maxima">Duración máxima (min)</label>
+            <input type="number" min="1" name="duracion_maxima" id="duracion_maxima"
+                   value="<?= $duracionMaxima !== null ? (int) $duracionMaxima : '' ?>">
+        </div>
+        <div>
+            <label for="dificultad">Dificultad</label>
+            <select name="dificultad" id="dificultad">
+                <option value="">Todos los niveles</option>
+                <option value="facil" <?= $dificultad === 'facil' ? 'selected' : '' ?>>Fácil</option>
+                <option value="media" <?= $dificultad === 'media' ? 'selected' : '' ?>>Media</option>
+                <option value="alta" <?= $dificultad === 'alta' ? 'selected' : '' ?>>Alta</option>
+            </select>
+        </div>
+        <button type="submit">Filtrar</button>
+        <a href="rutas.php">Limpiar</a>
+    </form>
+
+    <?php if ($errorFiltro !== null): ?>
+        <p class="error"><?= htmlspecialchars($errorFiltro) ?></p>
+    <?php elseif (!$resultado['ok']): ?>
+        <p class="error"><?= htmlspecialchars($resultado['error']) ?></p>
+    <?php elseif (!$rutas): ?>
+        <p class="aviso">No hay rutas para este filtro.</p>
+    <?php else: ?>
+        <p>Se han encontrado <?= $total ?> rutas.</p>
+        <div class="rejilla-rutas">
+        <?php foreach ($rutas as $ruta): ?>
+            <article class="tarjeta-ruta">
+                <p class="lugar">
+                    <?= htmlspecialchars($ruta['ciudad']['nombre']) ?>,
+                    <?= htmlspecialchars($ruta['ciudad']['pais']) ?>
+                </p>
+                <h2><?= htmlspecialchars($ruta['titulo']) ?></h2>
+                <p>Duración: <?= (int) $ruta['duracion_minutos'] ?> min</p>
+                <p>Distancia: <?= (float) $ruta['distancia_km'] ?> km</p>
+                <?php if (isset($ruta['dificultad'])): ?>
+                    <p>Dificultad: <?= htmlspecialchars((string) $ruta['dificultad']) ?></p>
+                <?php endif; ?>
+                <p>Puntos: <?= (int) $ruta['numero_puntos'] ?></p>
+                <a href="ver_ruta.php?id_ruta=<?= (int) $ruta['id_ruta'] ?>">
+                    Ver detalle
+                </a>
+            </article>
+        <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</main>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<?php
+// Script temporal: importa sql/ruta360.sql en MySQL, igual que se haría
+// manualmente desde la pestaña Importar de phpMyAdmin.
+declare(strict_types=1);
+header('Content-Type: text/plain; charset=utf-8');
+
+try {
+    $pdo = new PDO('mysql:host=127.0.0.1;port=3306;charset=utf8mb4', 'root', '', [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    ]);
+
+    $rutaSql = __DIR__ . '/sql/ruta360.sql';
+    $contenido = file_get_contents($rutaSql);
+    if ($contenido === false) {
+        throw new RuntimeException('No se pudo leer ' . $rutaSql);
+    }
+
+    $sentencias = array_filter(array_map('trim', explode(';', $contenido)));
+    foreach ($sentencias as $sentencia) {
+        if ($sentencia === '') {
+            continue;
+        }
+        $pdo->exec($sentencia);
+    }
+
+    echo "Importación completada sin errores.\n";
+
+    $pdo->exec('USE ruta360vs1');
+    $total = $pdo->query('SELECT COUNT(*) AS total FROM ciudades')->fetch();
+    echo 'Filas en ciudades: ' . $total['total'] . "\n";
+} catch (Throwable $e) {
+    echo 'ERROR: ' . $e->getMessage() . "\n";
+}

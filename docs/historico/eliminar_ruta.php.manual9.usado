@@ -1,0 +1,25 @@
+<?php
+require_once __DIR__ . '/servicios/cliente_rutas.php';
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    exit('Método no permitido.');
+}
+
+$idRuta = filter_input(INPUT_POST, 'id_ruta', FILTER_VALIDATE_INT,
+    ['options' => ['min_range' => 1]]);
+
+if ($idRuta === false || $idRuta === null) {
+    http_response_code(400);
+    exit('Identificador de ruta no válido.');
+}
+
+$resultado = eliminarRutaCliente($idRuta);
+
+if (!($resultado['ok'] ?? false)) {
+    http_response_code($resultado['estado'] ?? 500);
+    exit(htmlspecialchars($resultado['error'] ?? 'No se ha podido eliminar la ruta.'));
+}
+
+header('Location: rutas.php?eliminada=1');
+exit;

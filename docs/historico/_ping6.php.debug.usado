@@ -1,0 +1,4 @@
+<?php
+echo "DIR=" . __DIR__ . "\n";
+echo "FILE=" . __FILE__ . "\n";
+echo "CWD=" . getcwd() . "\n";

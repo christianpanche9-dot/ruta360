@@ -1,0 +1,25 @@
+<?php
+declare(strict_types=1);
+header('Content-Type: text/plain; charset=utf-8');
+
+try {
+    $pdo = new PDO('mysql:host=127.0.0.1;port=3306;dbname=ruta360vs1;charset=utf8mb4', 'root', '', [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    ]);
+
+    $pdo->exec("INSERT INTO rutas
+            (id_ciudad, titulo, descripcion, duracion_minutos, distancia_km)
+        VALUES
+            (1, 'Barcelona junto al mar',
+             'Un paseo desde la Barceloneta hasta el Port Olímpic.', 120, 3.60),
+            (2, 'Madrid de los Austrias',
+             'Historia y plazas del centro de Madrid.', 150, 4.20),
+            (4, 'París junto al Sena',
+             'Un recorrido por algunos lugares esenciales del Sena.', 210, 5.40)");
+
+    echo "Ampliación aplicada sin errores.\n";
+    $total = $pdo->query('SELECT COUNT(*) AS total FROM rutas')->fetch();
+    echo 'Filas en rutas: ' . $total['total'] . "\n";
+} catch (Throwable $e) {
+    echo 'ERROR: ' . $e->getMessage() . "\n";
+}

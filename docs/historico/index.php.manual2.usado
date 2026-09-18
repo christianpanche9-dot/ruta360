@@ -1,0 +1,19 @@
+<?php
+// Manual 2 (UF1846): entrada sencilla al proyecto.
+// De momento solo enlaza a la primera integración con un servicio externo.
+declare(strict_types=1);
+?>
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Ruta360</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+<main>
+    <h1>Ruta360</h1>
+    <p><a href="tiempo.php">Ver el tiempo actual en Barcelona</a></p>
+</main>
+</body>
+</html>

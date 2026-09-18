@@ -1,0 +1,5 @@
+<?php
+declare(strict_types=1);
+echo "SOAP cargado: " . (extension_loaded('soap') ? 'SI' : 'NO') . "\n";
+echo "php.ini cargado (Apache): " . (php_ini_loaded_file() ?: 'ninguno') . "\n";
+echo "Version PHP: " . PHP_VERSION . "\n";

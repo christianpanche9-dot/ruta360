@@ -1,0 +1,27 @@
+<?php
+declare(strict_types=1);
+ini_set('display_errors', '1');
+error_reporting(E_ALL);
+
+$wsdl = 'http://localhost/curso_php/ruta360vs1/soap/distancias.wsdl';
+try {
+    $cliente = new SoapClient($wsdl, [
+        'exceptions' => true,
+        'connection_timeout' => 2,
+        'cache_wsdl' => WSDL_CACHE_NONE,
+        'trace' => true
+    ]);
+    $r = $cliente->__soapCall('CalcularDistancia', [[
+        'Origen' => '41.3874,2.1686',
+        'Destino' => '41.43128,2.1686'
+    ]]);
+    echo "OK: " . json_encode($r) . "\n";
+} catch (SoapFault $e) {
+    echo "SOAPFAULT: faultcode=" . $e->faultcode . " mensaje=" . $e->getMessage() . "\n";
+    if (isset($cliente)) {
+        echo "--- ultima peticion ---\n" . $cliente->__getLastRequest() . "\n";
+        echo "--- ultima respuesta ---\n" . $cliente->__getLastResponse() . "\n";
+    }
+} catch (Throwable $e) {
+    echo "OTRO ERROR: " . get_class($e) . ' - ' . $e->getMessage() . "\n";
+}

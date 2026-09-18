@@ -1,0 +1,244 @@
+<?php
+declare(strict_types=1);
+require_once __DIR__ . '/../conexion.php';
+header('Content-Type: application/json; charset=utf-8');
+
+function responderJson(int $estado, array $contenido): never
+{
+    http_response_code($estado);
+    echo json_encode($contenido, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    exit;
+}
+
+function existeCiudad(PDO $pdo, int $idCiudad): bool
+{
+    $sql = 'SELECT 1 FROM ciudades WHERE id_ciudad = :id_ciudad LIMIT 1';
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['id_ciudad' => $idCiudad]);
+    return $stmt->fetchColumn() !== false;
+}
+
+function validarRuta(array $datos): array
+{
+    $errores = [];
+
+    $idCiudad = filter_var(
+        $datos['id_ciudad'] ?? null,
+        FILTER_VALIDATE_INT,
+        ['options' => ['min_range' => 1]]
+    );
+    if ($idCiudad === false) {
+        $errores['id_ciudad'] = 'Selecciona una ciudad válida.';
+    }
+
+    $titulo = trim((string) ($datos['titulo'] ?? ''));
+    $longitudTitulo = mb_strlen($titulo);
+    if ($longitudTitulo < 5 || $longitudTitulo > 120) {
+        $errores['titulo'] = 'El título debe tener entre 5 y 120 caracteres.';
+    }
+
+    $descripcion = trim((string) ($datos['descripcion'] ?? ''));
+    $longitudDescripcion = mb_strlen($descripcion);
+    if ($longitudDescripcion < 10 || $longitudDescripcion > 1000) {
+        $errores['descripcion'] = 'La descripción debe tener entre 10 y 1000 caracteres.';
+    }
+
+    $duracion = filter_var(
+        $datos['duracion_minutos'] ?? null,
+        FILTER_VALIDATE_INT,
+        ['options' => ['min_range' => 15, 'max_range' => 1440]]
+    );
+    if ($duracion === false) {
+        $errores['duracion_minutos'] = 'La duración debe estar entre 15 y 1440 minutos.';
+    }
+
+    $distancia = filter_var($datos['distancia_km'] ?? null, FILTER_VALIDATE_FLOAT);
+    if ($distancia === false || $distancia <= 0 || $distancia > 1000) {
+        $errores['distancia_km'] = 'La distancia debe ser mayor que 0 y máximo 1000 km.';
+    }
+
+    $dificultad = $datos['dificultad'] ?? null;
+    if ($dificultad !== null && $dificultad !== ''
+        && !in_array($dificultad, ['facil', 'media', 'alta'], true)) {
+        $errores['dificultad'] = 'La dificultad debe ser facil, media o alta.';
+    }
+
+    return $errores;
+}
+
+function crearRuta(PDO $pdo): never
+{
+    $cuerpo = file_get_contents('php://input');
+    if ($cuerpo === false || trim($cuerpo) === '') {
+        responderJson(400, ['ok' => false, 'error' => 'El cuerpo de la petición está vacío.']);
+    }
+
+    $datos = json_decode($cuerpo, true);
+    if (json_last_error() !== JSON_ERROR_NONE || !is_array($datos)) {
+        responderJson(400, ['ok' => false, 'error' => 'El cuerpo no contiene JSON válido.']);
+    }
+
+    $errores = validarRuta($datos);
+    if ($errores !== []) {
+        responderJson(422, ['ok' => false, 'error' => 'Revisa los datos enviados.', 'errores' => $errores]);
+    }
+
+    $idCiudad = (int) $datos['id_ciudad'];
+    if (!existeCiudad($pdo, $idCiudad)) {
+        responderJson(404, ['ok' => false, 'error' => 'La ciudad indicada no existe.']);
+    }
+
+    $columnas = ['id_ciudad', 'titulo', 'descripcion', 'duracion_minutos', 'distancia_km'];
+    $parametros = [
+        'id_ciudad' => $idCiudad,
+        'titulo' => trim((string) $datos['titulo']),
+        'descripcion' => trim((string) $datos['descripcion']),
+        'duracion_minutos' => (int) $datos['duracion_minutos'],
+        'distancia_km' => (float) $datos['distancia_km']
+    ];
+
+    $dificultad = $datos['dificultad'] ?? null;
+    if ($dificultad !== null && $dificultad !== '') {
+        $columnas[] = 'dificultad';
+        $parametros['dificultad'] = $dificultad;
+    }
+
+    $marcadores = array_map(static fn(string $columna): string => ':' . $columna, $columnas);
+
+    try {
+        $sql = 'INSERT INTO rutas (' . implode(', ', $columnas) . ')
+                VALUES (' . implode(', ', $marcadores) . ')';
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($parametros);
+
+        $idRuta = (int) $pdo->lastInsertId();
+        $url = 'ruta.php?id_ruta=' . $idRuta;
+
+        header('Location: ' . $url);
+        responderJson(201, [
+            'ok' => true,
+            'mensaje' => 'Ruta creada correctamente.',
+            'datos' => ['id_ruta' => $idRuta, 'url' => $url]
+        ]);
+    } catch (PDOException $e) {
+        error_log($e->getMessage());
+        responderJson(500, ['ok' => false, 'error' => 'No se ha podido crear la ruta.']);
+    }
+}
+
+function listarRutas(PDO $pdo): never
+{
+    // --- Filtro id_ciudad ---
+    $textoCiudad = filter_input(INPUT_GET, 'id_ciudad');
+    $idCiudad = null;
+    if ($textoCiudad !== null && $textoCiudad !== '') {
+        $idCiudad = filter_var($textoCiudad, FILTER_VALIDATE_INT,
+            ['options' => ['min_range' => 1]]);
+        if ($idCiudad === false) {
+            responderJson(400, ['ok' => false,
+                'error' => 'El filtro id_ciudad no es válido.']);
+        }
+    }
+
+    // --- Filtro duracion_maxima ---
+    $textoDuracion = filter_input(INPUT_GET, 'duracion_maxima');
+    $duracionMaxima = null;
+    if ($textoDuracion !== null && $textoDuracion !== '') {
+        $duracionMaxima = filter_var($textoDuracion, FILTER_VALIDATE_INT,
+            ['options' => ['min_range' => 1]]);
+        if ($duracionMaxima === false) {
+            responderJson(400, ['ok' => false,
+                'error' => 'El filtro duracion_maxima no es válido.']);
+        }
+    }
+
+    // --- Filtro dificultad ---
+    $dificultad = filter_input(INPUT_GET, 'dificultad');
+    if ($dificultad !== null && $dificultad !== '') {
+        if (!in_array($dificultad, ['facil', 'media', 'alta'], true)) {
+            responderJson(400, ['ok' => false,
+                'error' => 'El filtro dificultad no es válido.']);
+        }
+    } else {
+        $dificultad = null;
+    }
+
+    try {
+        $sql = 'SELECT r.id_ruta, r.titulo, r.duracion_minutos,
+                       r.distancia_km, r.dificultad,
+                       c.id_ciudad, c.nombre AS ciudad, c.pais,
+                       COUNT(p.id_punto) AS numero_puntos
+                  FROM rutas r
+                  INNER JOIN ciudades c ON c.id_ciudad = r.id_ciudad
+                  LEFT JOIN puntos_interes p ON p.id_ruta = r.id_ruta
+                 WHERE r.activa = 1 AND c.activa = 1';
+
+        $parametros = [];
+
+        if ($idCiudad !== null) {
+            $sql .= ' AND r.id_ciudad = :id_ciudad';
+            $parametros['id_ciudad'] = $idCiudad;
+        }
+
+        if ($duracionMaxima !== null) {
+            $sql .= ' AND r.duracion_minutos <= :duracion_maxima';
+            $parametros['duracion_maxima'] = $duracionMaxima;
+        }
+
+        if ($dificultad !== null) {
+            $sql .= ' AND r.dificultad = :dificultad';
+            $parametros['dificultad'] = $dificultad;
+        }
+
+        $sql .= ' GROUP BY r.id_ruta, r.titulo, r.duracion_minutos,
+                           r.distancia_km, r.dificultad,
+                           c.id_ciudad, c.nombre, c.pais
+                  ORDER BY c.nombre, r.titulo';
+
+        $consulta = $pdo->prepare($sql);
+        $consulta->execute($parametros);
+        $filas = $consulta->fetchAll();
+
+        $rutas = array_map(static fn(array $fila): array => [
+            'id_ruta' => (int) $fila['id_ruta'],
+            'titulo' => $fila['titulo'],
+            'duracion_minutos' => (int) $fila['duracion_minutos'],
+            'distancia_km' => (float) $fila['distancia_km'],
+            'dificultad' => $fila['dificultad'],
+            'ciudad' => [
+                'id_ciudad' => (int) $fila['id_ciudad'],
+                'nombre' => $fila['ciudad'],
+                'pais' => $fila['pais']
+            ],
+            'numero_puntos' => (int) $fila['numero_puntos']
+        ], $filas);
+
+        responderJson(200, [
+            'ok' => true,
+            'filtros' => [
+                'id_ciudad' => $idCiudad,
+                'duracion_maxima' => $duracionMaxima,
+                'dificultad' => $dificultad
+            ],
+            'total' => count($rutas),
+            'datos' => $rutas
+        ]);
+    } catch (PDOException $e) {
+        error_log($e->getMessage());
+        responderJson(500, ['ok' => false,
+            'error' => 'No se ha podido consultar la colección.']);
+    }
+}
+
+$metodo = $_SERVER['REQUEST_METHOD'];
+
+if ($metodo === 'GET') {
+    listarRutas($pdo);
+}
+
+if ($metodo === 'POST') {
+    crearRuta($pdo);
+}
+
+header('Allow: GET, POST');
+responderJson(405, ['ok' => false, 'error' => 'Método no permitido.']);

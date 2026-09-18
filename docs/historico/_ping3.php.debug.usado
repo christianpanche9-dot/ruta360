@@ -1,0 +1,4 @@
+<?php
+echo "before\n";
+require_once __DIR__ . '/conexion.php';
+echo "after\n";

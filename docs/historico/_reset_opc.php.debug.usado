@@ -1,0 +1,12 @@
+<?php
+if (function_exists('opcache_reset')) {
+    $r = opcache_reset();
+    echo "opcache_reset: " . var_export($r, true) . "\n";
+} else {
+    echo "no opcache function\n";
+}
+if (function_exists('opcache_get_status')) {
+    $s = opcache_get_status(false);
+    echo "opcache enabled: " . var_export($s !== false, true) . "\n";
+}
+echo "done\n";

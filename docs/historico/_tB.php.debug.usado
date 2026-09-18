@@ -1,0 +1,3 @@
+<?php
+echo "bravo1\n";
+echo "bravo2\n";

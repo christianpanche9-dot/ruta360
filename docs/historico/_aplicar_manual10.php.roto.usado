@@ -1,0 +1,84 @@
+<?php
+declare(strict_types=1);
+header('Content-Type: text/plain; charset=utf-8');
+require_once __DIR__ . '/conexion.php';
+
+function crearUsuario(PDO $pdo, string $nombre, string $email, string $password, string $rol): int
+{
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+    $stmt = $pdo->prepare(
+        'INSERT INTO usuarios (nombre, email, password_hash, rol)
+         VALUES (:nombre, :email, :password_hash, :rol)'
+    );
+    $stmt->execute([
+        'nombre' => $nombre,
+        'email' => $email,
+        'password_hash' => $hash,
+        'rol' => $rol
+    ]);
+    return (int) $pdo->lastInsertId();
+}
+
+function crearToken(PDO $pdo, int $idUsuario, string $nombre): string
+{
+    $tokenPlano = bin2hex(random_bytes(32));
+    $tokenHash = hash('sha256', $tokenPlano);
+    $stmt = $pdo->prepare(
+        'INSERT INTO api_tokens (id_usuario, nombre, token_hash, expira_en)
+         VALUES (:id_usuario, :nombre, :token_hash, :expira_en)'
+    );
+    $stmt->execute([
+        'id_usuario' => $idUsuario,
+        'nombre' => $nombre,
+        'token_hash' => $tokenHash,
+        'expira_en' => date('Y-m-d H:i:s', strtotime('+90 days'))
+    ]);
+    return $tokenPlano;
+}
+
+try {
+    $pdo->exec(
+        "CREATE TABLE IF NOT EXISTS usuarios (
+            id_usuario INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            nombre VARCHAR(100) NOT NULL,
+            email VARCHAR(190) NOT NULL UNIQUE,
+            password_hash VARCHAR(255) NOT NULL,
+            rol ENUM('lector', 'editor', 'admin') NOT NULL DEFAULT 'lector',
+            activo TINYINT(1) NOT NULL DEFAULT 1,
+            creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+    );
+
+    $pdo->exec(
+        "CREATE TABLE IF NOT EXISTS api_tokens (
+            id_token INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            id_usuario INT UNSIGNED NOT NULL,
+            nombre VARCHAR(100) NOT NULL,
+            token_hash CHAR(64) NOT NULL UNIQUE,
+            expira_en DATETIME NULL,
+            revocado_en DATETIME NULL,
+            ultimo_uso DATETIME NULL,
+            creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT fk_token_usuario FOREIGN KEY (id_usuario)
+                REFERENCES usuarios(id_usuario)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+    );
+
+    echo "Tablas creadas correctamente.\n\n";
+
+    $idAdmin = crearUsuario($pdo, 'Administración Ruta360', 'admin@ruta360.local', 'CambiaEstaClave123!', 'admin');
+    $tokenAdmin = crearToken($pdo, $idAdmin, 'Cliente web de administración');
+    echo "Usuario admin creado (id={$idAdmin}).\n";
+    echo "  Email: admin@ruta360.local\n";
+    echo "  Password: CambiaEstaClave123!\n";
+    echo "  Token admin (guardar ahora): {$tokenAdmin}\n\n";
+
+    $idEditor = crearUsuario($pdo, 'Editor de pruebas', 'editor@ruta360.local', 'CambiaEstaClave123!', 'editor');
+    $tokenEditor = crearToken($pdo, $idEditor, 'Cliente de pruebas editor');
+    echo "Usuario editor creado (id={$idEditor}).\n";
+    echo "  Email: editor@ruta360.local\n";
+    echo "  Password: CambiaEstaClave123!\n";
+    echo "  Token editor (guardar ahora): {$tokenEditor}\n";
+} catch (Throwable $e) {
+    echo 'ERROR: ' . $e->getMessage() . "\n";
+}

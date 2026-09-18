@@ -1,0 +1,3 @@
+<?php
+echo "alpha1\n";
+echo "alpha2\n";

@@ -1,0 +1,4 @@
+<?php
+echo "before4\n";
+require_once __DIR__ . '/_ping.php';
+echo "after4\n";

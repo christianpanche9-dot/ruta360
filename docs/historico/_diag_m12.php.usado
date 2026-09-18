@@ -1,0 +1,57 @@
+<?php
+declare(strict_types=1);
+ini_set('display_errors', '1');
+error_reporting(E_ALL);
+
+require_once __DIR__ . '/servicios/AdaptadorTransporte.php';
+require_once __DIR__ . '/servicios/AdaptadorDistanciasSoap.php';
+require_once __DIR__ . '/servicios/AdaptadorMeteorologia.php';
+
+$config = require __DIR__ . '/config/servicios.php';
+
+$contexto = [
+    'latitud' => 41.3874,
+    'longitud' => 2.1686,
+    'origen' => ['nombre' => 'Barcelona', 'coordenadas' => '41.3874,2.1686'],
+    'destino' => ['nombre' => 'Barcelona (fin de ruta)', 'coordenadas' => '41.43128,2.1686']
+];
+
+echo "== Transporte ==\n";
+try {
+    $adaptador = new AdaptadorTransporte($config['transporte']);
+    $r = $adaptador->consultar($contexto);
+    echo "OK: " . json_encode(get_object_vars($r)) . "\n";
+} catch (Throwable $e) {
+    echo "EXCEPCION: " . get_class($e) . ' - ' . $e->getMessage() . "\n";
+    if (method_exists($e, 'getPrevious') && $e->getPrevious()) {
+        echo "  previa: " . $e->getPrevious()->getMessage() . "\n";
+    }
+}
+
+echo "\n== Transporte (llamada http directa de comprobacion) ==\n";
+$ch = curl_init($config['transporte']['url']);
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $config['transporte']['token']]
+]);
+$cuerpo = curl_exec($ch);
+echo "http_code=" . curl_getinfo($ch, CURLINFO_HTTP_CODE) . " curl_errno=" . curl_errno($ch) . " curl_error=" . curl_error($ch) . "\n";
+echo "cuerpo=" . var_export($cuerpo, true) . "\n";
+curl_close($ch);
+
+echo "\n== Distancias SOAP ==\n";
+try {
+    $adaptador = new AdaptadorDistanciasSoap($config['distancias_soap']['wsdl']);
+    $r = $adaptador->consultar($contexto);
+    echo "OK: " . json_encode(get_object_vars($r)) . "\n";
+} catch (Throwable $e) {
+    echo "EXCEPCION: " . get_class($e) . ' - ' . $e->getMessage() . "\n";
+}
+
+echo "\n== WSDL accesible directamente? ==\n";
+$ch2 = curl_init($config['distancias_soap']['wsdl']);
+curl_setopt_array($ch2, [CURLOPT_RETURNTRANSFER => true]);
+$cuerpoWsdl = curl_exec($ch2);
+echo "http_code=" . curl_getinfo($ch2, CURLINFO_HTTP_CODE) . " curl_errno=" . curl_errno($ch2) . " curl_error=" . curl_error($ch2) . "\n";
+echo "longitud=" . strlen((string) $cuerpoWsdl) . "\n";
+curl_close($ch2);

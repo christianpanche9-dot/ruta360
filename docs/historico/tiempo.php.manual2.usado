@@ -1,0 +1,33 @@
+<?php
+require_once __DIR__ . '/servicios/meteorologia.php';
+
+$resultado = obtenerTiempoActual(41.3874, 2.1686);
+$temperatura = null;
+$viento = null;
+
+if ($resultado['ok']) {
+    $actual = $resultado['datos']['current'] ?? [];
+    $temperatura = $actual['temperature_2m'] ?? null;
+    $viento = $actual['wind_speed_10m'] ?? null;
+}
+?>
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Tiempo en Barcelona | Ruta360</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+<main>
+    <h1>Tiempo actual en Barcelona</h1>
+
+    <?php if (!$resultado['ok']): ?>
+        <p class="error"><?= htmlspecialchars($resultado['error']) ?></p>
+    <?php else: ?>
+        <p>Temperatura: <?= htmlspecialchars((string)$temperatura) ?> °C</p>
+        <p>Viento: <?= htmlspecialchars((string)$viento) ?> km/h</p>
+    <?php endif; ?>
+</main>
+</body>
+</html>
