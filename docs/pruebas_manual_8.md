@@ -12,6 +12,8 @@ en cualquier momento), no capturas de peticiones HTTP.
 | V1 | Revertir un commit ya compartido (8.16) | `git revert` deshace el efecto sin reescribir el historial | Cumplido |
 | T1 | Etiqueta anotada (8.17) | `git tag -a` crea una etiqueta verificable con `git show` | Cumplido |
 | M1 | Repositorio remoto real (8.18) | `git push` sube `main` y las etiquetas a un remoto real | Cumplido (tras resolver 2 incidencias, ver `docs/incidencia_manual_8.md`) |
+| P1 | `pathspec`/referencia inexistente (8.21) | Git rechaza sin efectos secundarios | Cumplido |
+| P2 | Push rechazado y reconciliación (8.21) | El rechazo ocurre; se resuelve con `pull` + merge, nunca con `--force` | Cumplido |
 
 ## R1 — Rama de función y fusión
 
@@ -128,3 +130,41 @@ usuario) consultando la página pública del repositorio: rama por
 defecto `main`, 8 commits, misma estructura de carpetas
 (`app`, `config`, `docs`, `public`, `sql`, `storage`, `tests`) que el
 proyecto local.
+
+## P1 — `pathspec`/referencia inexistente
+
+```
+git add config/archivo_que_no_existe.php
+git switch rama_que_no_existe
+```
+
+Resultado real: `fatal: pathspec '...' did not match any files` y
+`fatal: invalid reference: rama_que_no_existe`. `git status`
+inmediatamente después confirmó que no hubo ningún efecto — árbol de
+trabajo limpio. Ver `docs/incidencia_manual_8.md`, sección 4.
+
+## P2 — Push rechazado y reconciliación
+
+Simulado con un segundo clon (`ruta360_colega`) desincronizado
+respecto a `ruta360_m8`. Secuencia real completa:
+
+1. `ruta360_m8` avanza `main` y hace `push` (éxito).
+2. `ruta360_colega`, todavía en el commit anterior, hace su propio
+   commit local y prueba `push` → **rechazado**:
+   `! [rejected] main -> main (fetch first)`.
+3. `git pull` sin configurar estrategia → falla:
+   `fatal: Need to specify how to reconcile divergent branches`.
+4. `git config pull.rebase false` (local) + `git pull origin main` →
+   produce un conflicto real en `README.md` (ambas copias habían
+   anotado la misma zona del archivo).
+5. Conflicto resuelto conservando ambas anotaciones → `git commit
+   --no-edit` → commit de fusión real (`dbf861d`).
+6. `git push origin main` desde `ruta360_colega` → **éxito**
+   (`4ecc27e..dbf861d`).
+7. `ruta360_m8` sincronizado con `git fetch` + `git merge --ff-only
+   origin/main`.
+
+Ver `docs/incidencia_manual_8.md`, sección 5, para la narrativa
+completa con las salidas reales de cada paso. Las notas de prueba se
+retiraron de `README.md` y `ruta360_colega` se eliminó al terminar,
+por ser solo una herramienta de demostración.

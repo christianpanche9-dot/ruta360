@@ -173,14 +173,16 @@ en el Manual 3 (RS-01).
   `ruta360_m8` empieza sin historial heredado (a diferencia de todos
   los manuales anteriores) y cómo se adaptó `.gitignore` a lo que el
   proyecto realmente tiene.
-- `docs/incidencia_manual_8.md` — tres incidencias reales: `git
+- `docs/incidencia_manual_8.md` — cinco incidencias reales: `git
   config` sin efecto por ejecutarse antes de `git init`, una URL de
-  remoto mal formada (marcador de plantilla sin sustituir) y un
-  nombre de usuario de GitHub real distinto al asumido.
+  remoto mal formada, un nombre de usuario de GitHub real distinto al
+  asumido, un pathspec/referencia inexistente y un push rechazado con
+  reconciliación real (8.21, ejercicio opcional).
 - `docs/pruebas_manual_8.md` — matriz de la actividad guiada del
-  Manual 8 (R1/C1/V1/T1/M1): rama y fusión, conflicto de fusión real
-  resuelto, `git revert` sobre un commit ya compartido, etiqueta
-  anotada y repositorio remoto real.
+  Manual 8 (R1/C1/V1/T1/M1/P1/P2): rama y fusión, conflicto de fusión
+  real resuelto, `git revert` sobre un commit ya compartido, etiqueta
+  anotada, repositorio remoto real, y las incidencias opcionales de
+  8.21.
 - `docs/historico/` — archivos de ejercicios de manuales anteriores,
   conservados por motivos de aprendizaje. **No forma parte de la
   entrega** (ver el paquete de entrega, que los excluye).
@@ -207,5 +209,3 @@ proyecto (por qué el historial empieza en este manual, y qué excluye
 Repositorio remoto real (Manual 8, 8.18):
 <https://github.com/christianpanche9-dot/ruta360>. Etiqueta de
 cierre de este manual: `v0.8.0`.
-<!-- Nota de un colega (simulacion 8.21): trabajo en paralelo -->
-<!-- Nota: commit de demostracion para 8.21 (push rechazado) -->
