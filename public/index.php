@@ -23,7 +23,7 @@ $ciudades = $consulta->fetchAll();
 <div class="aviso-mantenimiento"><?= htmlspecialchars($avisoOperativo, ENT_QUOTES, 'UTF-8') ?></div>
 <?php endif; ?>
 <main>
-    <h1>Consulta el tiempo de un destino</h1>
+    <h1>Consulta el tiempo de un destino (entorno de pruebas)</h1>
 
     <form action="tiempo.php" method="get">
         <label for="id_ciudad">Ciudad</label>
