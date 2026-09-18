@@ -18,6 +18,10 @@ $ciudades = $consulta->fetchAll();
     <link rel="stylesheet" href="assets/css/estilos.css">
 </head>
 <body>
+<?php $avisoOperativo = config('app', 'aviso'); ?>
+<?php if (!empty($avisoOperativo)): ?>
+<div class="aviso-mantenimiento"><?= htmlspecialchars($avisoOperativo, ENT_QUOTES, 'UTF-8') ?></div>
+<?php endif; ?>
 <main>
     <h1>Consulta el tiempo de un destino</h1>
 

@@ -17,6 +17,12 @@ return [
         'env' => 'desarrollo',
         'debug' => true,
         'url' => 'http://localhost/ruta360_m6/public',
+        // Aviso operativo opcional (Manual 8, feature/aviso-mantenimiento).
+        // Vacío por defecto: no aparece nada. Se rellena solo en
+        // config.local.php cuando hay algo real que avisar (una
+        // ventana de mantenimiento, una incidencia conocida), sin
+        // tocar ningún archivo de código para mostrarlo u ocultarlo.
+        'aviso' => '',
     ],
     'db' => [
         'host' => '127.0.0.1',
