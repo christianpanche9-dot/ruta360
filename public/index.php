@@ -9,7 +9,6 @@ $consulta = $pdo->query(
 );
 
 $ciudades = $consulta->fetchAll();
-var_dump($ciudades); exit; // DEBUG temporal: verificar datos de ciudades
 ?>
 <!doctype html>
 <html lang="es">
