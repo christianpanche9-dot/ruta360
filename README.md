@@ -208,3 +208,4 @@ Repositorio remoto real (Manual 8, 8.18):
 <https://github.com/christianpanche9-dot/ruta360>. Etiqueta de
 cierre de este manual: `v0.8.0`.
 <!-- Nota de un colega (simulacion 8.21): trabajo en paralelo -->
+<!-- Nota: commit de demostracion para 8.21 (push rechazado) -->
