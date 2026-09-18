@@ -168,6 +168,29 @@ en el Manual 3 (RS-01).
 - `docs/pruebas_manual_7.md` — matriz de pruebas del Manual 7
   (I1/D1/C1/U1/X1/E1/B1), con evidencia de cada caso, incluida la
   copia de seguridad y restauración real.
+- `docs/inventario_git.md` — decisiones del Manual 8: por qué
+  `ruta360_m8` empieza sin historial heredado (a diferencia de todos
+  los manuales anteriores) y cómo se adaptó `.gitignore` a lo que el
+  proyecto realmente tiene.
 - `docs/historico/` — archivos de ejercicios de manuales anteriores,
   conservados por motivos de aprendizaje. **No forma parte de la
   entrega** (ver el paquete de entrega, que los excluye).
+
+## Control de versiones
+
+Este proyecto usa Git desde el Manual 8. Flujo de trabajo:
+
+1. `main` representa el estado estable e integrable.
+2. Cada tarea (una mejora, una corrección, un cambio de documentación)
+   se desarrolla en su propia rama: `feature/nombre`, `fix/nombre` o
+   `docs/nombre`.
+3. Antes de confirmar, revisar `git diff --staged` — nunca confirmar
+   sin haber leído qué se va a registrar.
+4. Al terminar una tarea, fusionar la rama en `main`, comprobar que el
+   proyecto sigue funcionando, y borrar la rama ya fusionada.
+5. Una versión lista para desplegar se marca con una etiqueta anotada
+   (`git tag -a vX.Y.Z`), siempre sobre `main` limpio.
+
+Ver `docs/inventario_git.md` para las decisiones específicas de este
+proyecto (por qué el historial empieza en este manual, y qué excluye
+`.gitignore` y por qué).
