@@ -183,9 +183,50 @@ en el Manual 3 (RS-01).
   real resuelto, `git revert` sobre un commit ya compartido, etiqueta
   anotada, repositorio remoto real, y las incidencias opcionales de
   8.21.
+- `docs/despliegue_manual_9.md` — ficha real del primer despliegue
+  completo (Manual 9): versión exacta desplegada, base de datos,
+  configuración, VirtualHost y verificación de los 7 criterios de
+  aceptación (9.17).
+- `docs/pruebas_manual_9.md` — las 8 pruebas de humo del despliegue
+  (9.15), con evidencia real, incluida una llamada real a una API
+  externa de meteorología.
+- `docs/incidencia_manual_9.md` — tres incidencias reales: colisión
+  de nombre de host con un VirtualHost preexistente, corrupción de
+  httpd-vhosts.conf al pegar comandos en el editor, y un usuario de
+  MySQL ya existente cuya contraseña `CREATE USER IF NOT EXISTS` no
+  habría actualizado.
 - `docs/historico/` — archivos de ejercicios de manuales anteriores,
   conservados por motivos de aprendizaje. **No forma parte de la
   entrega** (ver el paquete de entrega, que los excluye).
+
+## Despliegue
+
+Desde el Manual 9, la etiqueta `v0.8.0` (Manual 8) se despliega de
+verdad en un entorno de pruebas separado del de desarrollo, fuera de
+este repositorio:
+
+```
+curso_php/ruta360-test/
+├── releases/
+│   └── v0.8.0/      ← clon real de este repositorio, en el commit exacto de la etiqueta
+├── shared/
+│   ├── config/       ← config.local.php real, nunca en git
+│   ├── logs/
+│   └── uploads/
+└── current/          ← copia activa de releases/v0.8.0, con config.local.php enlazado a shared/
+```
+
+`current/config/config.local.php` es un enlace simbólico a
+`shared/config/config.local.php`, nunca una copia — así un futuro
+redespliegue solo reemplaza `current`, sin tocar la configuración ni
+las credenciales reales. VirtualHost real:
+`ruta360-m9-pruebas.local:18082` (no `pruebas.ruta360.local`, que ya
+existía apuntando a otra cosa — ver `docs/incidencia_manual_9.md`,
+punto 1).
+
+Ver `docs/despliegue_manual_9.md` (ficha completa), `docs/pruebas_manual_9.md`
+(pruebas de humo) y `docs/incidencia_manual_9.md` (incidencias reales
+del despliegue).
 
 ## Control de versiones
 
