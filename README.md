@@ -207,3 +207,5 @@ proyecto (por qué el historial empieza en este manual, y qué excluye
 Repositorio remoto real (Manual 8, 8.18):
 <https://github.com/christianpanche9-dot/ruta360>. Etiqueta de
 cierre de este manual: `v0.8.0`.
+
+<-rw-r--r--  1 usuario  staff  0 Jun 22 12:00 Nota: commit de demostracion para 8.21 (push rechazado) -->
