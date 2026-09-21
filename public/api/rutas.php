@@ -120,7 +120,7 @@ function existeCiudad(PDO $pdo, int $idCiudad): bool
 function buscarRuta(PDO $pdo, int $idRuta): ?array
 {
     $sql = 'SELECT id_ruta, id_ciudad, titulo, descripcion,
-                   duracion_minutos, distancia_km, dificultad, activa
+                   duracion_minutos, distancia_km, dificultad, categoria, activa
               FROM rutas
              WHERE id_ruta = :id_ruta
              LIMIT 1';
@@ -186,7 +186,10 @@ function validarRuta(array $datos): array
         && !in_array($dificultad, ['facil', 'media', 'alta'], true)) {
         $errores['dificultad'] = 'La dificultad debe ser facil, media o alta.';
     }
-
+    $categoria = $datos['categoria'] ?? null;
+    if ($categoria !== null && $categoria !== '' && mb_strlen((string) $categoria) > 40) {
+        $errores['categoria'] = 'La categoría no puede superar los 40 caracteres.';
+    }
     return $errores;
 }
 
@@ -218,7 +221,11 @@ function crearRuta(PDO $pdo): never
         $columnas[] = 'dificultad';
         $parametros['dificultad'] = $dificultad;
     }
-
+    $categoria = $datos['categoria'] ?? null;
+    if ($categoria !== null && $categoria !== '') {
+        $columnas[] = 'categoria';
+        $parametros['categoria'] = trim((string) $categoria);
+    }
     $marcadores = array_map(static fn(string $columna): string => ':' . $columna, $columnas);
 
     try {
@@ -281,7 +288,7 @@ function listarRutas(PDO $pdo): never
 
     try {
         $sql = 'SELECT r.id_ruta, r.titulo, r.duracion_minutos,
-                       r.distancia_km, r.dificultad,
+                       r.distancia_km, r.dificultad, r.categoria,
                        c.id_ciudad, c.nombre AS ciudad, c.pais,
                        COUNT(p.id_punto) AS numero_puntos
                   FROM rutas r
@@ -307,7 +314,7 @@ function listarRutas(PDO $pdo): never
         }
 
         $sql .= ' GROUP BY r.id_ruta, r.titulo, r.duracion_minutos,
-                           r.distancia_km, r.dificultad,
+                           r.distancia_km, r.dificultad, r.categoria,
                            c.id_ciudad, c.nombre, c.pais
                   ORDER BY c.nombre, r.titulo';
 
@@ -321,6 +328,7 @@ function listarRutas(PDO $pdo): never
             'duracion_minutos' => (int) $fila['duracion_minutos'],
             'distancia_km' => (float) $fila['distancia_km'],
             'dificultad' => $fila['dificultad'],
+            'categoria' => $fila['categoria'],
             'ciudad' => [
                 'id_ciudad' => (int) $fila['id_ciudad'],
                 'nombre' => $fila['ciudad'],
@@ -365,13 +373,19 @@ function ejecutarUpdateCompleto(PDO $pdo, int $idRuta, array $datos): void
         $dificultad = null;
     }
 
+    $categoria = $datos['categoria'] ?? null;
+    if ($categoria === '') {
+        $categoria = null;
+    }
+
     $sql = 'UPDATE rutas
                SET id_ciudad = :id_ciudad,
                    titulo = :titulo,
                    descripcion = :descripcion,
                    duracion_minutos = :duracion_minutos,
                    distancia_km = :distancia_km,
-                   dificultad = :dificultad
+                   dificultad = :dificultad,
+                   categoria = :categoria
              WHERE id_ruta = :id_ruta AND activa = 1';
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -381,6 +395,7 @@ function ejecutarUpdateCompleto(PDO $pdo, int $idRuta, array $datos): void
         'duracion_minutos' => (int) $datos['duracion_minutos'],
         'distancia_km' => (float) $datos['distancia_km'],
         'dificultad' => $dificultad ?? 'facil',
+        'categoria' => $categoria !== null ? trim((string) $categoria) : null,
         'id_ruta' => $idRuta
     ]);
 }
@@ -414,7 +429,7 @@ function actualizarRutaCompleta(PDO $pdo): never
 
 function validarPatch(array $datos): array
 {
-    $permitidos = ['id_ciudad', 'titulo', 'descripcion', 'duracion_minutos', 'distancia_km', 'dificultad'];
+    $permitidos = ['id_ciudad', 'titulo', 'descripcion', 'duracion_minutos', 'distancia_km', 'dificultad', 'categoria'];
     $errores = [];
 
     if ($datos === []) {
@@ -434,7 +449,8 @@ function validarPatch(array $datos): array
         'descripcion' => 'Descripción válida para comprobar el contrato.',
         'duracion_minutos' => 60,
         'distancia_km' => 1,
-        'dificultad' => 'facil'
+        'dificultad' => 'facil',
+        'categoria' => 'General'
     ];
     $erroresCompletos = validarRuta(array_replace($base, $completos));
 
@@ -443,7 +459,7 @@ function validarPatch(array $datos): array
 
 function ejecutarPatch(PDO $pdo, int $idRuta, array $datos): void
 {
-    $columnas = ['id_ciudad', 'titulo', 'descripcion', 'duracion_minutos', 'distancia_km', 'dificultad'];
+    $columnas = ['id_ciudad', 'titulo', 'descripcion', 'duracion_minutos', 'distancia_km', 'dificultad','categoria'];
     $set = [];
     $parametros = ['id_ruta' => $idRuta];
 

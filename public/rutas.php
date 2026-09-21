@@ -133,6 +133,9 @@ $usuarioActual = $_SESSION['usuario'] ?? null;
                 <?php if (isset($ruta['dificultad'])): ?>
                     <p>Dificultad: <?= htmlspecialchars((string) $ruta['dificultad']) ?></p>
                 <?php endif; ?>
+                <?php if (isset($ruta['categoria'])): ?>
+                    <p>Categoría: <?= htmlspecialchars((string) $ruta['categoria']) ?></p>
+                <?php endif; ?>
                 <p>Puntos: <?= (int) $ruta['numero_puntos'] ?></p>
                 <a href="ver_ruta.php?id_ruta=<?= (int) $ruta['id_ruta'] ?>">
                     Ver detalle

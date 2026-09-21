@@ -70,6 +70,10 @@ $rolActual = $_SESSION['usuario']['rol'] ?? null;
         <p>Dificultad: <?= htmlspecialchars((string)$ruta['dificultad']) ?></p>
     <?php endif; ?>
 
+    <?php if (isset($ruta['categoria'])): ?>
+        <p>Categoría: <?= htmlspecialchars((string)$ruta['categoria']) ?></p>
+    <?php endif; ?>
+
     <?php if (isset($ruta['numero_puntos'])): ?>
         <p>Lugares incluidos: <?= (int) $ruta['numero_puntos'] ?></p>
     <?php endif; ?>

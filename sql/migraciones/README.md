@@ -30,3 +30,5 @@ error de la migración).
 | Fecha | Archivo | Qué cambia | Probado (aplicar + revertir) |
 |---|---|---|---|
 | 2026-09-18 | `2026-09-18_01_anadir_creado_en_a_rutas` | Añade `creado_en` a `rutas` (ya lo tenían `usuarios` y `api_tokens`, `rutas` no) | Sí — ver `docs/pruebas_manual_7.md`, caso A1 |
+
+| 2026-09-21 | `2026-09-21_01_anadir_categoria_a_rutas` | Añade `categoria` (opcional) a `rutas`, para el Manual 10 | Sí — aplicar+revertir probado en `ruta360_dev`, ver docs/pruebas_manual_10.md |

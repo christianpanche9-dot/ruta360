@@ -24,7 +24,8 @@ $valores = [
     'descripcion' => $rutaActual['descripcion'],
     'duracion_minutos' => (string) $rutaActual['duracion_minutos'],
     'distancia_km' => (string) $rutaActual['distancia_km'],
-    'dificultad' => $rutaActual['dificultad'] ?? ''
+    'dificultad' => $rutaActual['dificultad'] ?? '',
+    'categoria' => $rutaActual['categoria'] ?? ''
 ];
 $errores = [];
 $mensaje = '';
@@ -35,7 +36,7 @@ $ciudades = $resultadoCiudades['ok'] ? $resultadoCiudades['datos'] : [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     validarCsrf();
 
-    $campos = ['id_ciudad', 'titulo', 'descripcion', 'duracion_minutos', 'distancia_km', 'dificultad'];
+    $campos = ['id_ciudad', 'titulo', 'descripcion', 'duracion_minutos', 'distancia_km', 'dificultad', 'categoria'];
     foreach ($campos as $campo) {
         $valores[$campo] = trim((string) ($_POST[$campo] ?? ''));
     }
@@ -43,6 +44,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $datosEnviados = $valores;
     if ($datosEnviados['dificultad'] === '') {
         unset($datosEnviados['dificultad']);
+    }
+    if ($datosEnviados['categoria'] === '') {
+        unset($datosEnviados['categoria']);
     }
 
     $resultado = actualizarRuta($idRuta, $datosEnviados);
@@ -120,6 +124,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </select>
         </label>
         <small><?= htmlspecialchars($errores['dificultad'] ?? '') ?></small>
+
+        <label>Categoría
+            <input type="text" name="categoria" maxlength="40"
+                   value="<?= htmlspecialchars($valores['categoria']) ?>">
+        </label>
+        <small><?= htmlspecialchars($errores['categoria'] ?? '') ?></small>
 
         <button type="submit">Guardar cambios</button>
     </form>

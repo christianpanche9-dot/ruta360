@@ -25,7 +25,7 @@ if ($idRuta === false || $idRuta === null) {
 
 try {
     $sqlRuta = 'SELECT r.id_ruta, r.titulo, r.descripcion,
-                       r.duracion_minutos, r.distancia_km, r.dificultad,
+                       r.duracion_minutos, r.distancia_km, r.dificultad, r.categoria,
                        c.id_ciudad, c.nombre AS ciudad, c.pais,
                        c.latitud, c.longitud
                   FROM rutas r
@@ -62,6 +62,7 @@ try {
             'duracion_minutos' => (int) $ruta['duracion_minutos'],
             'distancia_km' => (float) $ruta['distancia_km'],
             'dificultad' => $ruta['dificultad'],
+            'categoria' => $ruta['categoria'],
             'ciudad' => [
                 'id_ciudad' => (int) $ruta['id_ciudad'],
                 'nombre' => $ruta['ciudad'],
