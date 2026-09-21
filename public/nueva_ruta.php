@@ -9,7 +9,8 @@ $valores = [
     'descripcion' => '',
     'duracion_minutos' => '',
     'distancia_km' => '',
-    'dificultad' => ''
+    'dificultad' => '',
+    'categoria' => ''
 ];
 $errores = [];
 $mensaje = '';
@@ -28,6 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $datosEnviados = $valores;
     if ($datosEnviados['dificultad'] === '') {
         unset($datosEnviados['dificultad']);
+    }
+    if ($datosEnviados['categoria'] === '') {
+        unset($datosEnviados['categoria']);
     }
 
     $resultado = crearRuta($datosEnviados);
@@ -114,6 +118,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </select>
         </label>
         <small><?= htmlspecialchars($errores['dificultad'] ?? '') ?></small>
+
+        <label>Categoría
+            <input type="text" name="categoria" maxlength="40"
+                   value="<?= htmlspecialchars($valores['categoria']) ?>">
+        </label>
+        <small><?= htmlspecialchars($errores['categoria'] ?? '') ?></small>
 
         <button type="submit">Crear ruta</button>
     </form>
