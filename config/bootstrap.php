@@ -83,4 +83,5 @@ if (config('app', 'debug') === true) {
 }
 error_reporting(E_ALL);
 
+require_once __DIR__ . '/../app/Utilidades/registro.php';
 require_once __DIR__ . '/../app/Utilidades/seguridad_web.php';
