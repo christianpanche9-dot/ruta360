@@ -236,6 +236,7 @@ function crearRuta(PDO $pdo): never
 
         $idRuta = (int) $pdo->lastInsertId();
         $url = 'ruta.php?id_ruta=' . $idRuta;
+        registrar('INFO', 'Ruta creada', ['id_ruta' => $idRuta, 'id_ciudad' => $idCiudad]);
 
         header('Location: ' . $url);
         responderJson(201, [
@@ -244,7 +245,7 @@ function crearRuta(PDO $pdo): never
             'datos' => ['id_ruta' => $idRuta, 'url' => $url]
         ]);
     } catch (PDOException $e) {
-        error_log($e->getMessage());
+        registrar('ERROR', 'Fallo al crear ruta', ['id_ciudad' => $idCiudad]);
         responderJson(500, ['ok' => false, 'error' => 'No se ha podido crear la ruta.']);
     }
 }
